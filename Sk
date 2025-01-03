@@ -1,0 +1,27 @@
+# settings.py
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',  # Enable Basic Authentication
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # Optional: Requires user to be authenticated
+    ],
+}
+# views.py
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import BasicAuthentication
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([BasicAuthentication])
+def protected_view(request):
+    return Response({"message": "This is a protected view"})
+# urls.py
+from django.urls import path
+from .views import protected_view
+
+urlpatterns = [
+    path('protected/', protected_view),
+]
