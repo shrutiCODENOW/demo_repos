@@ -1,0 +1,46 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const Login = ({ setAuthToken }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    const authHeader = 'Basic ' + btoa(`${username}:${password}`);
+
+    try {
+      // Making a test request to see if authentication is successful
+      const response = await axios.get('http://127.0.0.1:8000/tasks/', {
+        headers: { Authorization: authHeader },
+      });
+      setAuthToken(authHeader); // Store the authHeader if needed
+      alert('Login successful!');
+    } catch (error) {
+      alert('Login failed. Please check your credentials.');
+    }
+  };
+
+  return (
+    <div>
+      <h2>Login</h2>
+      <form onSubmit={handleLogin}>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  );
+};
+
+export default Login;
