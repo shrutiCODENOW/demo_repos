@@ -1,0 +1,60 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const Dashboard = () => {
+  const [tasks, setTasks] = useState([]);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    // Retrieve username from localStorage (assuming username is stored during login)
+    const username = localStorage.getItem('username');
+    const password = localStorage.getItem('password');
+
+    // If no username or password, redirect to the login page
+    if (!username || !password) {
+      window.location.href = '/';  // Redirect to login page
+      return;
+    }
+
+    // Fetch tasks from API using Basic Authentication
+    axios
+      .get('http://127.0.0.1:8000/api/tasks/', {
+        auth: {
+          username: username,
+          password: password,  // Use Basic Authentication with username and password
+        },
+      })
+      .then((response) => {
+        // Filter tasks assigned to the logged-in user
+        const userTasks = response.data.filter(task => task.assigned_to.username === username);
+        setTasks(userTasks);  // Set the filtered tasks
+      })
+      .catch((error) => {
+        console.error('Error fetching tasks:', error);
+        setMessage('❌ Unable to fetch tasks. Please try again.');
+      });
+  }, []);  // Run once when the component mounts
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Assigned Tasks</h1>
+      {message && <p style={{ color: 'red' }}>{message}</p>}
+      <ul>
+        {tasks.length > 0 ? (
+          tasks.map((task) => (
+            <li key={task.id}>
+              <strong>{task.title}</strong><br />
+              <span>{task.description}</span><br />
+              <span>Status: {task.status}</span><br />
+              <span>Assigned to: {task.assigned_to.username}</span><br />
+            </li>
+          ))
+        ) : (
+          <p>No tasks assigned to you.</p>
+        )}
+      </ul>
+    </div>
+  );
+};
+
+export default Dashboard;
