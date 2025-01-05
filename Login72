@@ -1,0 +1,63 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const Login = () => {
+  // State variables for username, password, and error/success message
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
+
+  // Handle Login
+  const handleLogin = async (e) => {
+    e.preventDefault(); // Prevent form reload
+    setMessage(''); // Clear any previous messages
+
+    try {
+      // Send POST request to Django backend
+      const response = await axios.post(
+        'http://127.0.0.1:8000/api/login/', // Replace with your Django API endpoint
+        { username, password },
+        {
+          auth: {
+            username: username,
+            password: password,
+          },
+        }
+      );
+
+      // If successful, show success message
+      if (response.status === 200) {
+        setMessage('✅ Login Successful!');
+      }
+    } catch (err) {
+      // Show error message if credentials are invalid
+      setMessage('❌ Invalid credentials. Please try again.');
+    }
+  };
+
+  return (
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h1>Login</h1>
+      <form onSubmit={handleLogin}>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <br />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <br />
+        <button type="submit">Login</button>
+      </form>
+      {message && <p style={{ color: message.includes('❌') ? 'red' : 'green' }}>{message}</p>}
+    </div>
+  );
+};
+
+export default Login;
