@@ -1,0 +1,109 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const TaskList = () => {
+  const [tasks, setTasks] = useState([]);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const username = localStorage.getItem('username'); // Retrieve username from localStorage
+    const password = localStorage.getItem('password'); // Retrieve password from localStorage
+
+    if (!username || !password) {
+      window.location.href = '/';  // Redirect to login page if no credentials
+      return;
+    }
+
+    axios
+      .get('http://127.0.0.1:8000/api/tasks/', {
+        auth: {
+          username: username,
+          password: password,
+        },
+      })
+      .then((response) => {
+        // Filter tasks that are assigned to the logged-in user
+        const assignedTasks = response.data.filter(task => task.assigned_to.username === username);
+        setTasks(assignedTasks);
+      })
+      .catch((error) => {
+        console.error('Error fetching tasks:', error);
+      });
+  }, []);
+
+  // Function to handle task status update
+  const handleStatusChange = (taskId, newStatus) => {
+    const username = localStorage.getItem('username'); // Get username
+    const password = localStorage.getItem('password'); // Get password
+
+    if (!username || !password) {
+      window.location.href = '/';  // Redirect to login page if no credentials
+      return;
+    }
+
+    // Find the task that the user wants to change the status of
+    const task = tasks.find((task) => task.id === taskId);
+
+    // If the task is assigned to the logged-in user, allow status change
+    if (task && task.assigned_to.username === username) {
+      axios
+        .put(
+          `http://127.0.0.1:8000/api/tasks/${taskId}/`, 
+          { status: newStatus },
+          {
+            auth: {
+              username: username,
+              password: password,
+            },
+          }
+        )
+        .then((response) => {
+          // Update the task status locally after successful update
+          const updatedTasks = tasks.map((task) =>
+            task.id === taskId ? { ...task, status: newStatus } : task
+          );
+          setTasks(updatedTasks);
+          setMessage('Task status updated successfully');
+        })
+        .catch((error) => {
+          console.error('Error updating task status:', error);
+          setMessage('Error updating task status');
+        });
+    } else {
+      setMessage('You can only change the status of tasks assigned to you');
+    }
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Task List</h1>
+      {message && <p>{message}</p>}
+      <ul>
+        {tasks.length > 0 ? (
+          tasks.map((task) => (
+            <li key={task.id}>
+              <strong>{task.title}</strong><br />
+              <span>{task.description}</span><br />
+              <span>Status: {task.status}</span><br />
+              <span>Assigned to: {task.assigned_to.username}</span><br />
+              
+              {/* Status Change Dropdown */}
+              <select
+                value={task.status}
+                onChange={(e) => handleStatusChange(task.id, e.target.value)}
+              >
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="closed">Closed</option>
+              </select>
+            </li>
+          ))
+        ) : (
+          <p>No tasks available</p>
+        )}
+      </ul>
+    </div>
+  );
+};
+
+export default TaskList;
