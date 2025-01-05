@@ -1,0 +1,32 @@
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import AllTasks from './AllTasks';
+import AssignedTasks from './AssignedTasks';
+import Login from './Login'; // Assuming you have a Login component
+
+const App = () => {
+  return (
+    <Router>
+      <div style={{ padding: '20px' }}>
+        <h1>Task Management App</h1>
+        
+        {/* Navigation Links */}
+        <nav>
+          <ul>
+            <li><Link to="/all-tasks">All Tasks</Link></li>
+            <li><Link to="/assigned-tasks">Assigned Tasks</Link></li>
+          </ul>
+        </nav>
+
+        {/* Routes */}
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/all-tasks" element={<AllTasks />} />
+          <Route path="/assigned-tasks" element={<AssignedTasks />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+};
+
+export default App;
