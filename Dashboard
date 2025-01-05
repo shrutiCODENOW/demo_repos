@@ -1,0 +1,65 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const Dashboard = () => {
+  const [tasks, setTasks] = useState([]);
+  const [stats, setStats] = useState({
+    totalTasks: 0,
+    openTasks: 0,
+    closedTasks: 0,
+    inProgressTasks: 0,
+  });
+
+  const token = localStorage.getItem('token'); // Retrieve token from localStorage
+
+  // Fetch tasks and statistics
+  useEffect(() => {
+    axios
+      .get('http://127.0.0.1:8000/api/tasks/', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setTasks(response.data);
+        calculateStats(response.data);
+      })
+      .catch((error) => console.error('Failed to fetch tasks:', error));
+  }, [token]);
+
+  // Calculate task statistics
+  const calculateStats = (tasks) => {
+    const total = tasks.length;
+    const open = tasks.filter((task) => task.status === 'open').length;
+    const inProgress = tasks.filter((task) => task.status === 'in_progress').length;
+    const closed = tasks.filter((task) => task.status === 'closed').length;
+
+    setStats({
+      totalTasks: total,
+      openTasks: open,
+      closedTasks: closed,
+      inProgressTasks: inProgress,
+    });
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Dashboard</h1>
+      <h3>Task Statistics:</h3>
+      <ul>
+        <li>Total Tasks: {stats.totalTasks}</li>
+        <li>Open Tasks: {stats.openTasks}</li>
+        <li>In Progress Tasks: {stats.inProgressTasks}</li>
+        <li>Closed Tasks: {stats.closedTasks}</li>
+      </ul>
+      <h3>Assigned Tasks:</h3>
+      <ul>
+        {tasks.map((task) => (
+          <li key={task.id}>
+            <strong>{task.title}</strong> - {task.status}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default Dashboard;
