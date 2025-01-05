@@ -1,0 +1,27 @@
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Login from './Login';
+import Dashboard from './Dashboard';
+import TaskList from './TaskList';
+import AssignedTasks from './AssignedTasks';
+import PrivateRoute from './PrivateRoute';
+
+const App = () => {
+  return (
+    <Router>
+      <Routes>
+        {/* Public route for login */}
+        <Route path="/" element={<Login />} />
+
+        {/* Protected routes, only accessible after login */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/tasks" element={<TaskList />} />
+          <Route path="/assigned-tasks" element={<AssignedTasks />} />
+        </Route>
+      </Routes>
+    </Router>
+  );
+};
+
+export default App;
