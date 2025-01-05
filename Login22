@@ -1,0 +1,61 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+const Login = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate(); // Hook for navigation
+
+  const handleLogin = async (e) => {
+    e.preventDefault(); // Prevent form submission reload
+    setError(''); // Clear previous errors
+
+    try {
+      const response = await axios.post(
+        'http://127.0.0.1:8000/api/login/', // Replace with your Django API endpoint
+        { username, password },
+        {
+          auth: {
+            username: username,
+            password: password,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        alert('Login Successful');
+        navigate('/dashboard'); // Redirect to the next page (dashboard)
+      }
+    } catch (err) {
+      setError('Invalid credentials. Please try again.');
+    }
+  };
+
+  return (
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h1>Login</h1>
+      <form onSubmit={handleLogin}>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <br />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <br />
+        <button type="submit">Login</button>
+      </form>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+    </div>
+  );
+};
+
+export default Login;
