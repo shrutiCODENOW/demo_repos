@@ -1,0 +1,20 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+const HomePage = () => {
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Welcome to the Task Management System!</h1>
+      <p>You are successfully logged in.</p>
+      
+      <h3>Navigate to the following pages:</h3>
+      <ul>
+        <li><Link to="/tasks">View All Tasks</Link></li>
+        <li><Link to="/assigned-tasks">View Assigned Tasks</Link></li>
+        <li><Link to="/dashboard">Dashboard</Link></li>
+      </ul>
+    </div>
+  );
+};
+
+export default HomePage;
