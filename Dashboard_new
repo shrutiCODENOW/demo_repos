@@ -1,0 +1,143 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+const Dashboard = () => {
+  const [tasks, setTasks] = useState([]);
+  const [stats, setStats] = useState({
+    totalTasks: 0,
+    openTasks: 0,
+    closedTasks: 0,
+    inProgressTasks: 0,
+  });
+
+  const navigate = useNavigate();
+
+  // Retrieve username and password from localStorage (stored during login)
+  const username = localStorage.getItem('username');
+  const password = localStorage.getItem('password');
+
+  useEffect(() => {
+    // If username or password is missing, redirect to login page
+    if (!username || !password) {
+      navigate('/');
+      return;
+    }
+
+    // Fetch tasks from API using Basic Authentication
+    axios
+      .get('http://127.0.0.1:8000/api/tasks/', {
+        headers: {
+          Authorization: `Basic ${btoa(`${username}:${password}`)}`, // Encode username:password
+        },
+      })
+      .then((response) => {
+        setTasks(response.data); // Set tasks data
+        calculateStats(response.data); // Calculate task stats
+      })
+      .catch((error) => {
+        console.error('Failed to fetch tasks:', error);
+        if (error.response && error.response.status === 401) {
+          alert('Unauthorized. Please login again.');
+          localStorage.clear(); // Clear stored credentials
+          navigate('/'); // Redirect to login
+        }
+      });
+  }, [username, password, navigate]);
+
+  // Calculate task statistics
+  const calculateStats = (tasks) => {
+    const total = tasks.length;
+    const open = tasks.filter((task) => task.status === 'open').length;
+    const inProgress = tasks.filter((task) => task.status === 'in_progress').length;
+    const closed = tasks.filter((task) => task.status === 'closed').length;
+
+    setStats({
+      totalTasks: total,
+      openTasks: open,
+      closedTasks: closed,
+      inProgressTasks: inProgress,
+    });
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Dashboard</h1>
+      <h3>Task Statistics:</h3>
+      <ul>
+        <li>Total Tasks: {stats.totalTasks}</li>
+        <li>Open Tasks: {stats.openTasks}</li>
+        <li>In Progress Tasks: {stats.inProgressTasks}</li>
+        <li>Closed Tasks: {stats.closedTasks}</li>
+      </ul>
+      <h3>Assigned Tasks:</h3>
+      <ul>
+        {tasks.map((task) => (
+          <li key={task.id}>
+            <strong>{task.title}</strong> - {task.status}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default Dashboard;
+
+
+
+
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+const Dashboard = () => {
+  const [data, setData] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get username and password from localStorage
+    const username = localStorage.getItem('username');
+    const password = localStorage.getItem('password');
+
+    // Redirect to login if credentials are missing
+    if (!username || !password) {
+      navigate('/');
+      return;
+    }
+
+    // Fetch dashboard data using Basic Authentication
+    axios
+      .get('http://127.0.0.1:8000/api/dashboard/', {
+        headers: {
+          Authorization: `Basic ${btoa(`${username}:${password}`)}`,
+        },
+      })
+      .then((response) => {
+        setData(response.data); // Store the response data
+      })
+      .catch((error) => {
+        console.error('Failed to fetch data:', error);
+
+        // Redirect to login if unauthorized
+        if (error.response && error.response.status === 401) {
+          alert('Unauthorized. Please login again.');
+          localStorage.clear();
+          navigate('/');
+        }
+      });
+  }, [navigate]);
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Dashboard</h1>
+      {data ? (
+        <pre>{JSON.stringify(data, null, 2)}</pre> // Display data in JSON format
+      ) : (
+        <p>Loading...</p>
+      )}
+    </div>
+  );
+};
+
+export default Dashboard;
