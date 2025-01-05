@@ -1,0 +1,16 @@
+import React from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
+
+const PrivateRoute = () => {
+  const isAuthenticated = localStorage.getItem('username') && localStorage.getItem('password');
+
+  // If not authenticated, redirect to login page
+  if (!isAuthenticated) {
+    return <Navigate to="/" />;
+  }
+
+  // If authenticated, render the protected route
+  return <Outlet />;
+};
+
+export default PrivateRoute;
