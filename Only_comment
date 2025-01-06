@@ -1,0 +1,101 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const TaskList = () => {
+  const [tasks, setTasks] = useState([]); // State for tasks
+  const [comment, setComment] = useState(''); // State for comments
+  const [selectedTaskId, setSelectedTaskId] = useState(null); // Track selected task ID
+  const [error, setError] = useState(''); // Error message for comments
+  const [success, setSuccess] = useState(''); // Success message for comments
+
+  useEffect(() => {
+    // Fetch tasks from API
+    axios
+      .get('http://127.0.0.1:8000/api/tasks/') // Replace this URL with your API endpoint
+      .then((response) => {
+        setTasks(response.data); // Store tasks
+      })
+      .catch((error) => {
+        console.error('Error fetching tasks:', error);
+      });
+  }, []);
+
+  // Handle comment submission
+  const handleAddComment = (taskId) => {
+    if (!comment) {
+      setError('Comment cannot be empty.');
+      return;
+    }
+
+    axios
+      .post(`http://127.0.0.1:8000/api/task/comment/${taskId}/`, { comment }) // API URL
+      .then((response) => {
+        setSuccess('Comment added successfully!');
+        setError('');
+        setComment(''); // Clear comment field
+
+        // Refresh tasks to fetch updated comments
+        axios.get('http://127.0.0.1:8000/api/tasks/').then((res) => setTasks(res.data));
+      })
+      .catch((error) => {
+        console.error('Error adding comment:', error);
+        setError('Failed to add comment.');
+        setSuccess('');
+      });
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Task List</h1>
+      <ul>
+        {tasks.length > 0 ? (
+          tasks.map((task) => (
+            <li key={task.id} style={{ marginBottom: '20px' }}>
+              <strong>{task.title}</strong><br />
+              <span>{task.description}</span><br />
+              <span>Status: {task.status}</span><br />
+              <span>Created At: {new Date(task.created_at).toLocaleString()}</span><br />
+              <span>Updated At: {new Date(task.updated_at).toLocaleString()}</span><br />
+
+              {/* Display Comments */}
+              <strong>Comments:</strong>
+              {task.comments && task.comments.length > 0 ? (
+                <ul>
+                  {task.comments.map((cmt, index) => (
+                    <li key={index}>
+                      {cmt.comment} (by {cmt.user.username})
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No comments yet.</p>
+              )}
+
+              {/* Add Comment Section */}
+              <div>
+                <input
+                  type="text"
+                  placeholder="Add a comment..."
+                  value={selectedTaskId === task.id ? comment : ''}
+                  onChange={(e) => {
+                    setComment(e.target.value);
+                    setSelectedTaskId(task.id);
+                  }}
+                />
+                <button onClick={() => handleAddComment(task.id)}>Add Comment</button>
+              </div>
+
+              {/* Error or Success Message */}
+              {selectedTaskId === task.id && error && <p style={{ color: 'red' }}>{error}</p>}
+              {selectedTaskId === task.id && success && <p style={{ color: 'green' }}>{success}</p>}
+            </li>
+          ))
+        ) : (
+          <p>No tasks available</p>
+        )}
+      </ul>
+    </div>
+  );
+};
+
+export default TaskList;
