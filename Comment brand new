@@ -1,0 +1,98 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const TaskDetail = () => {
+  const [tasks, setTasks] = useState([]); // Store tasks assigned to the user
+  const [newComment, setNewComment] = useState(''); // Store new comment input
+  const [selectedTaskId, setSelectedTaskId] = useState(null); // Store the selected task ID for commenting
+  const [error, setError] = useState('');
+  const username = localStorage.getItem('username');
+  const password = localStorage.getItem('password');
+
+  // Fetch tasks assigned to the logged-in user
+  useEffect(() => {
+    const fetchAssignedTasks = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/tasks/assigned/', {
+          auth: { username, password },
+        });
+        setTasks(response.data); // Set tasks assigned to the user
+      } catch (err) {
+        setError('Error fetching tasks.');
+        console.error(err);
+      }
+    };
+
+    fetchAssignedTasks();
+  }, [username, password]);
+
+  // Handle comment submission
+  const handleSubmitComment = async (e) => {
+    e.preventDefault();
+
+    if (!newComment) {
+      alert('Please enter a comment.');
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `http://127.0.0.1:8000/api/add/comment/${selectedTaskId}/`,
+        { comment: newComment },
+        { auth: { username, password } }
+      );
+
+      if (response.status === 201) {
+        alert('Comment added successfully!');
+        setNewComment(''); // Clear input
+        // Optionally, you can fetch the updated task to display the new comment
+      }
+    } catch (err) {
+      alert('Error adding comment.');
+      console.error(err);
+    }
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Assigned Tasks</h1>
+      {tasks.length > 0 ? (
+        <ul>
+          {tasks.map((task) => (
+            <li key={task.id}>
+              <strong>{task.title}</strong>
+              <br />
+              <span>{task.description}</span>
+              <br />
+              <button onClick={() => setSelectedTaskId(task.id)}>
+                Add Comment
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>No tasks assigned to you.</p>
+      )}
+
+      {selectedTaskId && (
+        <div>
+          <h3>Add Comment</h3>
+          <form onSubmit={handleSubmitComment}>
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Add a comment"
+              rows="4"
+              cols="50"
+              required
+            />
+            <br />
+            <button type="submit">Submit Comment</button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default TaskDetail;
