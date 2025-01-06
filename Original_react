@@ -1,0 +1,95 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const AddComment = ({ taskId }) => {
+  const [comment, setComment] = useState('');
+  const [message, setMessage] = useState('');
+  const [task, setTask] = useState(null);
+
+  useEffect(() => {
+    // Fetch the task to check if it's assigned to the current user
+    const username = localStorage.getItem('username');
+    const password = localStorage.getItem('password');
+
+    if (!username || !password) {
+      window.location.href = '/login'; // Redirect to login if not logged in
+      return;
+    }
+
+    axios
+      .get(`http://127.0.0.1:8000/api/tasks/${taskId}/`, {
+        auth: {
+          username: username,
+          password: password,
+        },
+      })
+      .then((response) => {
+        setTask(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching task:', error);
+        setMessage('Error fetching task');
+      });
+  }, [taskId]);
+
+  const handleAddComment = () => {
+    const username = localStorage.getItem('username');
+    const password = localStorage.getItem('password');
+
+    if (!comment) {
+      setMessage('Comment cannot be empty');
+      return;
+    }
+
+    // Send the comment to the backend
+    axios
+      .post(
+        `http://127.0.0.1:8000/api/task/comment/${taskId}/`,
+        { comment },
+        {
+          auth: {
+            username: username,
+            password: password,
+          },
+        }
+      )
+      .then((response) => {
+        setMessage('Comment added successfully!');
+        setComment(''); // Clear the comment field
+      })
+      .catch((error) => {
+        console.error('Error adding comment:', error);
+        setMessage('Error adding comment');
+      });
+  };
+
+  return (
+    <div>
+      <h3>Add Comment to Task</h3>
+      {task ? (
+        <>
+          <p>
+            <strong>Task Title:</strong> {task.title}
+          </p>
+          <p>
+            <strong>Assigned to:</strong> {task.assigned_to.username}
+          </p>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Add your comment here"
+            rows="4"
+            cols="50"
+          />
+          <br />
+          <button onClick={handleAddComment}>Add Comment</button>
+        </>
+      ) : (
+        <p>Loading task...</p>
+      )}
+      {message && <p>{message}</p>}
+    </div>
+  );
+};
+
+export default AddComment;
