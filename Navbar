@@ -1,0 +1,97 @@
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+
+const HomePage = () => {
+  const navigate = useNavigate();
+
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem('username');
+    localStorage.removeItem('password');
+    navigate('/'); // Redirect to login page
+  };
+
+  return (
+    <div>
+      {/* Navbar */}
+      <nav style={styles.navbar}>
+        <h2 style={styles.logo}>Task Management System</h2>
+        <ul style={styles.navLinks}>
+          <li>
+            <Link to="/tasks" style={styles.link}>View All Tasks</Link>
+          </li>
+          <li>
+            <Link to="/assigned-tasks" style={styles.link}>Assigned Tasks</Link>
+          </li>
+          <li>
+            <Link to="/change_status" style={styles.link}>Change Status</Link>
+          </li>
+          <li>
+            <Link to="/pick_task" style={styles.link}>Pick Task</Link>
+          </li>
+          <li>
+            <Link to="/add_comment" style={styles.link}>Add Comment</Link>
+          </li>
+          <li>
+            <Link to="/dashboard" style={styles.link}>Dashboard</Link>
+          </li>
+          <li>
+            <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
+          </li>
+        </ul>
+      </nav>
+
+      {/* Body Content */}
+      <div style={styles.content}>
+        <h1>Welcome to the Task Management System!</h1>
+        <p>Your one-stop platform for task assignments and tracking.</p>
+      </div>
+    </div>
+  );
+};
+
+// CSS Styles
+const styles = {
+  navbar: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '10px 20px',
+    backgroundColor: '#007bff',
+    color: 'white',
+  },
+  logo: {
+    fontSize: '20px',
+    fontWeight: 'bold',
+  },
+  navLinks: {
+    display: 'flex',
+    listStyle: 'none',
+    gap: '15px',
+  },
+  link: {
+    color: 'white',
+    textDecoration: 'none',
+    padding: '8px 12px',
+    borderRadius: '5px',
+    transition: 'background 0.3s',
+  },
+  linkHover: {
+    background: 'rgba(255, 255, 255, 0.2)',
+  },
+  logoutButton: {
+    padding: '8px 12px',
+    borderRadius: '5px',
+    background: '#dc3545',
+    color: 'white',
+    border: 'none',
+    cursor: 'pointer',
+  },
+  content: {
+    padding: '20px',
+    textAlign: 'center',
+    marginTop: '50px',
+  },
+};
+
+export default HomePage;
