@@ -1,0 +1,91 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const OpenTasks = () => {
+  const [tasks, setTasks] = useState([]); // State for storing tasks
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(''); // Error state
+  const [username, setUsername] = useState(localStorage.getItem('username')); // Assuming username is saved in localStorage
+  const [password, setPassword] = useState(localStorage.getItem('password')); // Assuming password is saved in localStorage
+
+  useEffect(() => {
+    // Fetch all tasks from the API
+    const fetchTasks = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/tasks/', {
+          auth: {
+            username: username, // Basic Authentication username
+            password: password, // Basic Authentication password
+          },
+        });
+
+        // Filter tasks with status 'open'
+        const openTasks = response.data.filter((task) => task.status === 'open');
+        setTasks(openTasks); // Update the state with open tasks
+      } catch (err) {
+        console.error('Error fetching tasks:', err);
+        setError('Failed to fetch tasks.');
+      } finally {
+        setLoading(false); // Stop loading
+      }
+    };
+
+    fetchTasks(); // Call the function to fetch tasks
+  }, [username, password]); // Re-run fetch if username or password changes
+
+  // Handle picking a task and changing its status
+  const handlePickTask = async (taskId) => {
+    try {
+      // Send a POST request to pick the task and change its status to "in_progress"
+      const response = await axios.post(
+        `http://127.0.0.1:8000/api/pick/task/${taskId}/`,  // API endpoint to pick the task
+        {},
+        {
+          auth: {
+            username: username,  // Basic Authentication username
+            password: password,  // Basic Authentication password
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        alert('Task picked successfully!');
+        
+        // Remove the picked task from the list
+        setTasks(tasks.filter((task) => task.id !== taskId));
+      }
+    } catch (err) {
+      console.error('Error picking task:', err);
+      alert('Failed to pick task. Please try again.');
+    }
+  };
+
+  // Display loading or error messages
+  if (loading) return <p>Loading tasks...</p>;
+  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Open Tasks</h1>
+      {tasks.length === 0 ? (
+        <p>No open tasks available.</p>
+      ) : (
+        <ul>
+          {tasks.map((task) => (
+            <li key={task.id}>
+              <strong>{task.title}</strong> - {task.description}
+              <br />
+              Status: {task.status}
+              <br />
+              <button onClick={() => handlePickTask(task.id)} style={{ marginTop: '10px' }}>
+                Pick Task
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
+export default OpenTasks;
