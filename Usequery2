@@ -1,0 +1,44 @@
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+
+// API call function
+const fetchTasks = async () => {
+  const response = await axios.get('http://127.0.0.1:8000/api/tasks/'); // Replace with your API endpoint
+  return response.data; // Return the task data
+};
+
+const TaskList = () => {
+  // Use the useQuery hook to fetch data
+  const { data, error, isLoading } = useQuery({
+    queryKey: ['tasks'], // Unique key for caching
+    queryFn: fetchTasks, // Function to fetch data
+  });
+
+  // Handle loading state
+  if (isLoading) return <p>Loading tasks...</p>;
+
+  // Handle error state
+  if (error) return <p>Error fetching tasks: {error.message}</p>;
+
+  // Render tasks if data is available
+  return (
+    <div>
+      <h1>Task List</h1>
+      <ul>
+        {data.length > 0 ? (
+          data.map((task) => (
+            <li key={task.id}>
+              <strong>{task.title}</strong> - {task.status}<br />
+              Description: {task.description}
+            </li>
+          ))
+        ) : (
+          <p>No tasks available</p>
+        )}
+      </ul>
+    </div>
+  );
+};
+
+export default TaskList;
