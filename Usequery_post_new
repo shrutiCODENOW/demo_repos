@@ -1,0 +1,51 @@
+import React from 'react';
+import { useMutation } from '@tanstack/react-query';
+import axios from 'axios';
+
+// API function to POST hardcoded data
+const postTask = async () => {
+  const response = await axios.post('http://127.0.0.1:8000/api/tasks/', {
+    title: 'New Task',             // Hardcoded Title
+    description: 'Task Description', // Hardcoded Description
+    status: 'open',               // Hardcoded Status
+  });
+  return response.data;
+};
+
+const AddTask = () => {
+  // useMutation hook for POST request
+  const mutation = useMutation({
+    mutationFn: postTask,
+    onSuccess: (data) => {
+      alert('✅ Task added successfully!');
+      console.log('Task Added:', data);
+    },
+    onError: (error) => {
+      alert('❌ Error adding task!');
+      console.error('Error:', error);
+    },
+  });
+
+  // Button Click Handler
+  const handleAddTask = () => {
+    mutation.mutate(); // Trigger POST request
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Add Task</h1>
+      <button 
+        onClick={handleAddTask} 
+        disabled={mutation.isLoading} // Disable button while loading
+      >
+        {mutation.isLoading ? 'Adding...' : 'Add Hardcoded Task'}
+      </button>
+
+      {/* Display status messages */}
+      {mutation.isError && <p style={{ color: 'red' }}>Error adding task!</p>}
+      {mutation.isSuccess && <p style={{ color: 'green' }}>Task added successfully!</p>}
+    </div>
+  );
+};
+
+export default AddTask;
