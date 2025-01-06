@@ -1,0 +1,90 @@
+The project is a Movie Dashboard that allows users to search, view, and manage a collection of movies.
+The dashboard will pull data from an external movie API (like OMDb API) and display movie details,
+search results, and provide features like pagination, sorting, and filtering.
+Key Features of the Application:
+1. Search Bar: Allows users to search movies by title. The search result will be fetched from an
+external API (e.g., OMDb API).
+2. Movie List: Displays a paginated list of movies with basic details like title, poster, and year.
+3. Movie Details: When a user clicks on a movie, they’ll see detailed information about it (e.g.,
+genre, rating, actors, plot).
+4. Error Handling: Display appropriate error messages for failed network requests or missing
+data.
+5. Sorting and Filtering: Users can filter movies by genre or rating, and sort them by release date
+or rating.
+6. Pagination: Display movies in pages, allowing users to navigate through the list.
+7. React Query: Handle the fetching and caching of movie data with React Query.
+8. State Management: Use Redux Toolkit (or Context API) for managing global state (e.g., user
+preferences like sorting, filters).
+9. Routing: Use React Router to navigate between the movie list and individual movie details.
+10. Styling: Use Styled Components for consistent design and responsive UI.
+1. Project Setup
+• Initialize the React App: Use create-react-app to create the base of the application.
+• Install Dependencies:
+o Axios or Fetch for making HTTP requests.
+o React Query for managing server state.
+o React Router for routing.
+o Redux Toolkit (or Context API) for global state management.
+o Styled Components for styling.
+o Jest and Cypress for testing.
+. Create Components
+• App.js: The main entry point for the app that sets up routing.
+• MovieList: A component that fetches and displays a list of movies. It should display basic
+details like movie title, poster image, and year.
+• MovieDetails: Displays detailed information about a selected movie.
+• SearchBar: A search input field to filter movies by title.
+• Pagination: A component to handle page navigation.
+• SortAndFilter: A component that allows the user to sort and filter the movie list.
+• ErrorBoundary: A component that catches JavaScript errors in any part of the child
+component tree and logs them, displaying a fallback UI.
+3. Routing Setup (React Router)
+• Define routes in App.js:
+o /: Movie list page with search, filter, and pagination.
+o /movie/:id: Movie details page (with dynamic routing using movie/:id).
+4. Fetching Data
+• Use Axios/Fetch API to make HTTP requests to the movie API.
+• Display loading states while fetching data.
+• Implement Error Handling using try/catch blocks. If an error occurs (e.g., network failure),
+display a fallback UI (like a "Something went wrong" message).
+• Use React Query to manage API requests and cache responses to reduce unnecessary API calls.
+5. State Management (Redux Toolkit / Context API)
+• Use Redux or Context API for managing global state. For example:
+o Store selected movie for the details page.
+o Store search query, sort order, and filter settings.
+6. Styled Components
+• Implement a responsive layout using Styled Components.
+• Create reusable styled components for buttons, cards, and pagination controls.
+7. Error Handling and Edge Cases
+• Handle scenarios like:
+o No movies found for the search term.
+o API request failures (e.g., showing an error message if the API request fails).
+o Invalid movie ID in the URL (e.g., when the user navigates to a non-existent movie detail page).
+Unit Tests: Write tests for key components like MovieList, MovieDetails, and SearchBar using
+Jest.
+• Integration Tests: Use Cypress for end-to-end testing of the user flows, such as searching for
+movies, navigating to details, and using pagination.
+• Test edge cases, like no results found or API failures.
+9. Bonus Features
+• Infinite Scroll: Instead of pagination, implement infinite scrolling where the next set of movies
+loads as the user scrolls down.
+• User Authentication: Add a simple authentication system that allows users to log in and save
+their favorite movies.
+• Light/Dark Mode: Implement light and dark themes, and allow users to toggle between them.
+Evaluation Criteria:
+1. Code Quality: Clean, readable, and well-organized code.
+2. Component Reusability: Components should be modular and reusable.
+3. React Knowledge: Effective use of React concepts such as hooks, component lifecycle, state
+management, and routing.
+4. Error Handling: Proper handling of errors in both the UI and API interactions.
+5. API Handling: Efficient data fetching, caching, and pagination using Axios, React Query, or
+Fetch.
+6. Testing: Adequate unit and integration tests for key components and user flows.
+7. Styling: A well-designed UI using Styled Components, with responsiveness and user-friendly
+design.
+8. Documentation: Clear README file explaining how to run the project, project structure, and
+any design decisions made.
+Deliverables:
+1. Source Code: A GitHub repository with the completed code.
+2. Testing: Unit tests and end-to-end tests with proper coverage.
+3. Live Demo: A hosted version of the application (e.g., on Netlify, Vercel).
+4. Documentation: A README with project setup instructions, features, and any additional
+notes.
