@@ -1,0 +1,57 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const Dashboard = () => {
+  const [dashboardData, setDashboardData] = useState({
+    total_tasks: 0,
+    open_tasks: 0,
+    closed_tasks: 0,
+    tasks_per_user: {},
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    // Fetch dashboard data from Django API
+    const fetchDashboardData = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/dashboard/', {
+          auth: {
+            username: localStorage.getItem('username'),
+            password: localStorage.getItem('password'),  // Basic Authentication
+          }
+        });
+        setDashboardData(response.data);
+      } catch (err) {
+        setError('Failed to fetch dashboard data.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <div>
+        <h3>Total Tasks: {dashboardData.total_tasks}</h3>
+        <h3>Open Tasks: {dashboardData.open_tasks}</h3>
+        <h3>Closed Tasks: {dashboardData.closed_tasks}</h3>
+        <h3>Tasks Per User:</h3>
+        <ul>
+          {Object.entries(dashboardData.tasks_per_user).map(([user, taskCount]) => (
+            <li key={user}>{user}: {taskCount} tasks</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
