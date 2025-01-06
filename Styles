@@ -1,0 +1,110 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const Login = ({ onLogin }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    // Simple Basic Authentication using Axios
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/api/login/', {
+        auth: {
+          username: username,
+          password: password,
+        },
+      });
+
+      if (response.status === 200) {
+        // Save username and password in localStorage
+        localStorage.setItem('username', username);
+        localStorage.setItem('password', password);
+        onLogin(); // Call parent function to redirect
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setMessage('Invalid username or password!');
+    }
+  };
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.loginBox}>
+        <h1 style={styles.title}>Login</h1>
+        <form onSubmit={handleLogin} style={styles.form}>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={styles.input}
+          />
+          <button type="submit" style={styles.button}>
+            Login
+          </button>
+        </form>
+        {message && <p style={styles.error}>{message}</p>}
+      </div>
+    </div>
+  );
+};
+
+// CSS Styles using JS Object
+const styles = {
+  container: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    backgroundColor: '#f0f2f5',
+  },
+  loginBox: {
+    width: '400px',
+    padding: '20px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    borderRadius: '8px',
+    backgroundColor: '#fff',
+  },
+  title: {
+    marginBottom: '20px',
+    fontSize: '24px',
+    color: '#333',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  input: {
+    padding: '10px',
+    fontSize: '16px',
+    borderRadius: '5px',
+    border: '1px solid #ccc',
+  },
+  button: {
+    padding: '10px',
+    fontSize: '16px',
+    borderRadius: '5px',
+    backgroundColor: '#007bff',
+    color: '#fff',
+    border: 'none',
+    cursor: 'pointer',
+  },
+  error: {
+    marginTop: '10px',
+    color: 'red',
+    fontSize: '14px',
+  },
+};
+
+export default Login;
