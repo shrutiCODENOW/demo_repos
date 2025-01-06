@@ -1,0 +1,19 @@
+const handleCommentSubmit = (taskId) => {
+  const comment = commentInputValue;  // Make sure you are capturing the comment input
+
+  // Send the comment to the backend API
+  axios.post(`http://127.0.0.1:8000/api/task/comment/${taskId}/`, { comment }, {
+    auth: {
+      username: localStorage.getItem('username'), // Basic authentication
+      password: localStorage.getItem('password'),
+    }
+  })
+  .then((response) => {
+    console.log('Comment added:', response.data);
+    setComments([...comments, response.data]);  // Assuming you want to update the list of comments
+  })
+  .catch((error) => {
+    console.error('Error adding comment:', error);
+    alert('Error adding comment');
+  });
+};
