@@ -1,0 +1,72 @@
+import React, { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import axios from 'axios';
+
+// API call function for POST request
+const postTask = async (taskData) => {
+  const response = await axios.post(
+    'http://127.0.0.1:8000/api/tasks/', // Replace with your API endpoint
+    taskData
+  );
+  return response.data; // Return the response data
+};
+
+const AddTask = () => {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+
+  // useMutation hook for handling POST requests
+  const mutation = useMutation({
+    mutationFn: postTask, // Function to call for posting data
+    onSuccess: (data) => {
+      alert('Task added successfully!');
+      console.log('Response:', data); // Log the response
+    },
+    onError: (error) => {
+      alert('Error adding task!');
+      console.error('Error:', error); // Log the error
+    },
+  });
+
+  // Submit handler
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newTask = {
+      title,
+      description,
+      status: 'open', // Example status
+    };
+
+    // Trigger mutation to post data
+    mutation.mutate(newTask);
+  };
+
+  return (
+    <div>
+      <h1>Add Task</h1>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Task Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <br />
+        <input
+          type="text"
+          placeholder="Task Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <br />
+        <button type="submit" disabled={mutation.isLoading}>
+          {mutation.isLoading ? 'Adding...' : 'Add Task'}
+        </button>
+      </form>
+      {mutation.isError && <p style={{ color: 'red' }}>Error adding task</p>}
+      {mutation.isSuccess && <p style={{ color: 'green' }}>Task added successfully!</p>}
+    </div>
+  );
+};
+
+export default AddTask;
