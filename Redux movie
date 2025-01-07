@@ -1,0 +1,26 @@
+import { createSlice } from '@reduxjs/toolkit';
+
+const initialState = {
+  query: '',
+  sortBy: 'Year',
+  filterBy: '',
+};
+
+const movieSlice = createSlice({
+  name: 'movies',
+  initialState,
+  reducers: {
+    setQuery: (state, action) => {
+      state.query = action.payload;
+    },
+    setSortBy: (state, action) => {
+      state.sortBy = action.payload;
+    },
+    setFilterBy: (state, action) => {
+      state.filterBy = action.payload;
+    },
+  },
+});
+
+export const { setQuery, setSortBy, setFilterBy } = movieSlice.actions;
+export default movieSlice.reducer;
