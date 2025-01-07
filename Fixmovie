@@ -1,0 +1,90 @@
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchMovies } from '../api/movieApi';
+import Pagination from './Pagination';
+import styled from 'styled-components';
+
+const Container = styled.div`
+  padding: 20px;
+`;
+
+const MovieGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+`;
+
+const MovieCard = styled.div`
+  background: ${(props) => props.theme.cardBg};
+  color: ${(props) => props.theme.text};
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+
+  img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 5px;
+  }
+`;
+
+const SearchInput = styled.input`
+  padding: 10px;
+  width: 100%;
+  margin-bottom: 20px;
+  font-size: 16px;
+`;
+
+const MovieList = () => {
+  const [query, setQuery] = useState('batman');
+  const [page, setPage] = useState(1);
+
+  // React Query v5 - New Syntax
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['movies', query, page], // Query key
+    queryFn: () => fetchMovies(query, page), // Query function
+    keepPreviousData: true, // Keeps cached data while loading new data
+  });
+
+  const handleSearch = (e) => {
+    setQuery(e.target.value);
+    setPage(1); // Reset to page 1 when searching
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage); // Update page
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error fetching movies!</div>;
+  if (!data?.Search) return <div>No results found.</div>;
+
+  return (
+    <Container>
+      <SearchInput
+        type="text"
+        placeholder="Search movies..."
+        value={query}
+        onChange={handleSearch}
+      />
+      <MovieGrid>
+        {data.Search.map((movie) => (
+          <MovieCard key={movie.imdbID}>
+            <img src={movie.Poster} alt={movie.Title} />
+            <h3>{movie.Title}</h3>
+            <p>{movie.Year}</p>
+          </MovieCard>
+        ))}
+      </MovieGrid>
+      <Pagination
+        currentPage={page}
+        totalPages={Math.ceil(data.totalResults / 10)}
+        onPageChange={handlePageChange}
+      />
+    </Container>
+  );
+};
+
+export default MovieList;
