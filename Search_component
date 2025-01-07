@@ -1,0 +1,43 @@
+import React from 'react';
+import styled from 'styled-components';
+
+// Styled Components for Search Bar
+const SearchContainer = styled.div`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+`;
+
+const SearchInput = styled.input`
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  width: 200px;
+  margin-left: 10px;
+  outline: none;
+
+  &:focus {
+    border-color: #007bff;
+  }
+`;
+
+const SearchBar = ({ query, setQuery }) => {
+  return (
+    <SearchContainer>
+      <label htmlFor="search" style={{ fontSize: '16px' }}>Search: </label>
+      <SearchInput
+        id="search"
+        type="text"
+        placeholder="Search for movies..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+    </SearchContainer>
+  );
+};
+
+export default SearchBar;
