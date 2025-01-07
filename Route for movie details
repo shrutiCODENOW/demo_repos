@@ -1,0 +1,31 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import MovieList from './MovieList'; // Movie list component
+import MovieDetails from './MovieDetails'; // Movie details component
+
+// Create Query Client
+const queryClient = new QueryClient();
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <div>
+          <h1>Movie Dashboard</h1>
+
+          {/* Define Routes */}
+          <Routes>
+            {/* Default route for Movie List */}
+            <Route path="/" element={<MovieList />} />
+
+            {/* Dynamic route for Movie Details */}
+            <Route path="/movie/:id" element={<MovieDetails />} />
+          </Routes>
+        </div>
+      </Router>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
