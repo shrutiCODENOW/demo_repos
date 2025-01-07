@@ -1,0 +1,30 @@
+import React from 'react';
+import { useSelector } from 'react-redux';
+import { useQuery } from '@tanstack/react-query';
+import { fetchMovies } from '../api/movieApi';
+
+const MovieList = () => {
+  const { query } = useSelector((state) => state.movies);
+  const { data, isLoading, error } = useQuery(['movies', query], () => fetchMovies(query));
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading movies!</div>;
+
+  return (
+    <div>
+      {data?.Search?.length > 0 ? (
+        data.Search.map((movie) => (
+          <div key={movie.imdbID}>
+            <img src={movie.Poster} alt={movie.Title} />
+            <h3>{movie.Title}</h3>
+            <p>{movie.Year}</p>
+          </div>
+        ))
+      ) : (
+        <div>No movies found</div>
+      )}
+    </div>
+  );
+};
+
+export default MovieList;
