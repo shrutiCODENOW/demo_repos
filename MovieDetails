@@ -1,0 +1,25 @@
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { fetchMovieDetails } from '../api/movieApi';
+
+const MovieDetails = () => {
+  const { id } = useParams();
+  const { data, isLoading, error } = useQuery(['movieDetails', id], () => fetchMovieDetails(id));
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error fetching details</div>;
+
+  return (
+    <div>
+      <h1>{data.Title}</h1>
+      <img src={data.Poster} alt={data.Title} />
+      <p>Genre: {data.Genre}</p>
+      <p>Plot: {data.Plot}</p>
+      <p>Actors: {data.Actors}</p>
+      <p>Rating: {data.imdbRating}</p>
+    </div>
+  );
+};
+
+export default MovieDetails;
