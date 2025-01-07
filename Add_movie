@@ -1,0 +1,29 @@
+import axios from 'axios';
+
+// Replace 'YOUR_OMDB_API_KEY' with your actual OMDb API key
+const API_KEY = 'YOUR_OMDB_API_KEY'; 
+const BASE_URL = 'https://www.omdbapi.com/';
+
+// Fetch movies by search query and page
+export const fetchMovies = async (query, page = 1) => {
+  try {
+    const response = await axios.get(`${BASE_URL}?s=${query}&page=${page}&apikey=${API_KEY}`);
+    console.log('Movies fetched:', response.data); // Logs data to console
+    return response.data; // Return the API response data
+  } catch (error) {
+    console.error('Error fetching movies:', error); // Logs errors
+    throw error; // Propagates the error
+  }
+};
+
+// Fetch detailed information about a movie by ID
+export const fetchMovieDetails = async (id) => {
+  try {
+    const response = await axios.get(`${BASE_URL}?i=${id}&apikey=${API_KEY}`);
+    console.log('Movie details:', response.data); // Logs data to console
+    return response.data; // Return the API response data
+  } catch (error) {
+    console.error('Error fetching movie details:', error); // Logs errors
+    throw error; // Propagates the error
+  }
+};
