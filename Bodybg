@@ -1,0 +1,5 @@
+useEffect(() => {
+    const body = document.body;
+    const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+    body.style.backgroundColor = currentTheme.bodyBg;
+  }, [theme]); // Dependency on theme to reapply whenever it changes
