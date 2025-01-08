@@ -1,0 +1,4 @@
+{/* Only show 'No movies found' message if data has been loaded and no movies are found */}
+      {!isLoading && filteredMovies.length === 0 && isMoviesLoaded && (
+        <div>No movies found.</div>
+      )}
