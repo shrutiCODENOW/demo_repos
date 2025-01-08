@@ -1,0 +1,30 @@
+// ThemeContext.js
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+// Create Theme Context
+const ThemeContext = createContext();
+
+export const ThemeProviderComponent = ({ children }) => {
+  const [theme, setTheme] = useState('light'); // Default theme is light
+
+  // Toggle Theme Function
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+  };
+
+  // Update body background color dynamically
+  useEffect(() => {
+    document.body.style.backgroundColor = theme === 'light' ? '#f4f4f4' : '#121212';
+    document.body.style.color = theme === 'light' ? '#333' : '#fff';
+  }, [theme]); // Update body color whenever theme changes
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+// Custom Hook
+export const useTheme = () => useContext(ThemeContext);
