@@ -1,0 +1,62 @@
+// App.js
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from 'styled-components';
+import MovieList from './MovieList';
+import MovieDetails from './MovieDetails';
+import NavigationBar from './NavigationBar';
+import { ThemeProviderComponent, useTheme } from './ThemeContext';
+
+const queryClient = new QueryClient();
+
+// Define Light and Dark Themes
+const lightTheme = {
+  primary: '#007bff',
+  cardBg: '#fff',
+  text: '#333',
+  inputBorder: '#ccc',
+  primaryHover: '#0056b3',
+  background: '#f4f4f4',
+  navBg: '#283747',
+  navText: 'white',
+};
+
+const darkTheme = {
+  primary: '#1d1d1d',
+  cardBg: '#333',
+  text: '#fff',
+  inputBorder: '#555',
+  primaryHover: '#555',
+  background: '#121212',
+  navBg: '#1a1a1a',
+  navText: '#fff',
+};
+
+function ThemedApp() {
+  const { theme } = useTheme(); // Use the current theme from context
+
+  return (
+    <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
+      <Router>
+        <NavigationBar />
+        <Routes>
+          <Route path="/" element={<MovieList />} />
+          <Route path="/movie/:id" element={<MovieDetails />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProviderComponent>
+        <ThemedApp />
+      </ThemeProviderComponent>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
