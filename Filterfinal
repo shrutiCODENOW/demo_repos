@@ -1,0 +1,20 @@
+import React from 'react';
+
+const Filter = ({ selectedGenre, onGenreChange }) => {
+  return (
+    <div>
+      <label>Filter by Genre:</label>
+      <select value={selectedGenre} onChange={(e) => onGenreChange(e.target.value)}>
+        <option value="All">All</option>
+        <option value="Action">Action</option>
+        <option value="Adventure">Adventure</option>
+        <option value="Comedy">Comedy</option>
+        <option value="Drama">Drama</option>
+        <option value="Horror">Horror</option>
+        <option value="Sci-Fi">Sci-Fi</option>
+      </select>
+    </div>
+  );
+};
+
+export default Filter;
