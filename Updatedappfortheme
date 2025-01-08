@@ -1,0 +1,55 @@
+// App.js
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from 'styled-components';
+import GlobalStyles from './GlobalStyles';
+import MovieList from './MovieList';
+import MovieDetails from './MovieDetails';
+import NavigationBar from './NavigationBar';
+import { ThemeProviderComponent } from './ThemeContext'; // Import the ThemeProviderComponent
+
+const queryClient = new QueryClient();
+
+// Define the light and dark themes
+const lightTheme = {
+  primary: '#007bff',
+  cardBg: '#fff',
+  text: '#333',
+  inputBorder: '#ccc',
+  primaryHover: '#0056b3',
+  background: '#f4f4f4',
+  navBg: '#283747',
+  navText: 'white',
+};
+
+const darkTheme = {
+  primary: '#1d1d1d',
+  cardBg: '#333',
+  text: '#fff',
+  inputBorder: '#555',
+  primaryHover: '#555',
+  background: '#121212',
+  navBg: '#1a1a1a',
+  navText: '#fff',
+};
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProviderComponent>
+        <Router>
+          <NavigationBar />
+          <div>
+            <Routes>
+              <Route path="/" element={<MovieList />} />
+              <Route path="/movie/:id" element={<MovieDetails />} />
+            </Routes>
+          </div>
+        </Router>
+      </ThemeProviderComponent>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
