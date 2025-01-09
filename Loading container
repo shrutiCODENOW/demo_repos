@@ -1,0 +1,29 @@
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: ${(props) => props.theme.background};
+`;
+
+const LoadingText = styled.p`
+  font-size: 18px;
+  color: ${(props) => props.theme.text};
+`;
+
+const NoMoviesFound = styled.div`
+  text-align: center;
+  margin-top: 50px;
+  font-size: 20px;
+  color: ${(props) => props.theme.text};
+`;
+
+const spin = keyframes`
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+`;
