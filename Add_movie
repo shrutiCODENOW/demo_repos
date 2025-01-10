@@ -141,5 +141,39 @@ return (
 );
 }
 
+import { createSlice } from '@reduxjs/toolkit';
+
+const initialState = {
+  query: '',  // Search query
+  page: 1,    // Current page for pagination
+};
+
+const movieSlice = createSlice({
+  name: 'movies',
+  initialState,
+  reducers: {
+    setQuery: (state, action) => {
+      state.query = action.payload;
+    },
+    setPage: (state, action) => {
+      state.page = action.payload;
+    },
+  },
+});
+
+export const { setQuery, setPage } = movieSlice.actions;
+
+export default movieSlice.reducer;
+
+import { configureStore } from '@reduxjs/toolkit';
+import movieSlice from './movieSlice';
+
+export const store = configureStore({
+  reducer: {
+    movies: movieSlice,
+  },
+});
+
+export default store;
 
 
