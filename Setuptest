@@ -262,3 +262,5 @@ if (!data?.Search) return <NoMoviesFound>NO MOVIES FOUND.</NoMoviesFound>;
 };
 
 export default MovieList;
+
+npm install --save-dev @testing-library/react @testing-library/jest-dom msw react-router-dom @testing-library/user-event
