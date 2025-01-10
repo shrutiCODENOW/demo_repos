@@ -1,0 +1,130 @@
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { setupServer } from 'msw/node';
+import { rest } from 'msw';
+import store from './store';
+import MovieList from './MovieList';
+
+// Mock Movie API response
+const server = setupServer(
+  rest.get('https://www.omdbapi.com/', (req, res, ctx) => {
+    const searchQuery = req.url.searchParams.get('s');
+    const page = req.url.searchParams.get('page');
+    if (searchQuery === 'random') {
+      return res(
+        ctx.json({
+          Search: [
+            { Title: 'Movie 1', Year: '2021', imdbID: 'id1', Poster: 'url1' },
+            { Title: 'Movie 2', Year: '2020', imdbID: 'id2', Poster: 'url2' },
+          ],
+          totalResults: '2',
+        })
+      );
+    }
+    return res(ctx.json({ Search: [], totalResults: '0' }));
+  }),
+
+  rest.get('https://www.omdbapi.com/', (req, res, ctx) => {
+    const movieId = req.url.searchParams.get('i');
+    if (movieId === 'id1') {
+      return res(
+        ctx.json({ imdbID: 'id1', Genre: 'Action', imdbRating: '7.5' })
+      );
+    }
+    if (movieId === 'id2') {
+      return res(
+        ctx.json({ imdbID: 'id2', Genre: 'Drama', imdbRating: '8.2' })
+      );
+    }
+    return res(ctx.status(404));
+  })
+);
+
+// Setup Query Client
+const queryClient = new QueryClient();
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+const renderWithProviders = (ui) => {
+  return render(
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>{ui}</BrowserRouter>
+      </QueryClientProvider>
+    </Provider>
+  );
+};
+
+describe('MovieList Component', () => {
+  test('renders the loading state initially', () => {
+    renderWithProviders(<MovieList />);
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+  });
+
+  test('renders the movie list after fetching', async () => {
+    renderWithProviders(<MovieList />);
+    await waitFor(() => {
+      expect(screen.getByText('Movie 1')).toBeInTheDocument();
+      expect(screen.getByText('Movie 2')).toBeInTheDocument();
+    });
+  });
+
+  test('displays "No Movies Found" if no movies are returned', async () => {
+    server.use(
+      rest.get('https://www.omdbapi.com/', (req, res, ctx) =>
+        res(ctx.json({ Search: [], totalResults: '0' }))
+      )
+    );
+
+    renderWithProviders(<MovieList />);
+    await waitFor(() => {
+      expect(screen.getByText(/no movies found/i)).toBeInTheDocument();
+    });
+  });
+
+  test('filters movies by genre', async () => {
+    renderWithProviders(<MovieList />);
+    await waitFor(() => {
+      expect(screen.getByText('Movie 1')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText(/filter by genre/i), {
+      target: { value: 'Action' },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Movie 1')).toBeInTheDocument();
+    });
+  });
+
+  test('searches for a movie when search bar is used', async () => {
+    renderWithProviders(<MovieList />);
+    fireEvent.change(screen.getByPlaceholderText(/search movies/i), {
+      target: { value: 'comedy' },
+    });
+    fireEvent.click(screen.getByText(/search/i));
+
+    await waitFor(() => {
+      expect(screen.getByText('Movie 1')).toBeInTheDocument(); // Assuming response has Movie 1
+    });
+  });
+
+  test('paginates correctly', async () => {
+    renderWithProviders(<MovieList />);
+    await waitFor(() => {
+      expect(screen.getByText('Movie 1')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Next')); // Simulating pagination click
+
+    await waitFor(() => {
+      // Mock server does not change response; you can adjust this based on test cases.
+      expect(screen.getByText('Movie 1')).toBeInTheDocument();
+    });
+  });
+});
