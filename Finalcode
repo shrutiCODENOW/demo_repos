@@ -1,0 +1,50 @@
+import React from "react";
+import { render, screen, waitFor } from "@testing-library/react";
+import { Provider } from "react-redux";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import configureStore from "redux-mock-store";
+import MovieList from "./MovieList";
+import { mockMovies } from "./mockMovies"; // Import the mock data
+
+// Mock the API calls
+jest.mock("./MovieApi", () => ({
+  fetchMovies: jest.fn(() => Promise.resolve(mockMovies)),
+  fetchMovieDetails: jest.fn((imdbID) =>
+    Promise.resolve({
+      imdbID,
+      Genre: "Action, Sci-Fi",
+      imdbRating: "8.8",
+    })
+  ),
+}));
+
+const queryClient = new QueryClient();
+const mockStore = configureStore([]);
+const store = mockStore({
+  movies: { query: "Inception", page: 1 },
+});
+
+test("renders movie list with mock data", async () => {
+  render(
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <MovieList />
+      </QueryClientProvider>
+    </Provider>
+  );
+
+  // Wait for the data to load and verify movies appear
+  await waitFor(() => {
+    expect(screen.getByText(/Inception/i)).toBeInTheDocument();
+    expect(screen.getByText(/The Dark Knight/i)).toBeInTheDocument();
+    expect(screen.getByText(/Interstellar/i)).toBeInTheDocument();
+  });
+
+  // Verify movie details like year
+  expect(screen.getByText(/2010/i)).toBeInTheDocument();
+  expect(screen.getByText(/2008/i)).toBeInTheDocument();
+  expect(screen.getByText(/2014/i)).toBeInTheDocument();
+
+  // Ensure images are rendered
+  expect(screen.getAllByRole("img")).toHaveLength(3);
+});
