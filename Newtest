@@ -1,0 +1,153 @@
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import configureStore from 'redux-mock-store';
+import MovieList from './MovieList';
+
+const mockStore = configureStore([]);
+const queryClient = new QueryClient();
+
+const mockMovies = {
+  Search: [
+    {
+      imdbID: 'tt0111161',
+      Title: 'The Shawshank Redemption',
+      Year: '1994',
+      Poster: 'https://via.placeholder.com/200',
+    },
+    {
+      imdbID: 'tt0068646',
+      Title: 'The Godfather',
+      Year: '1972',
+      Poster: 'https://via.placeholder.com/200',
+    },
+  ],
+  totalResults: 2,
+};
+
+jest.mock('./MovieApi', () => ({
+  fetchMovies: jest.fn(() => Promise.resolve(mockMovies)),
+  fetchMovieDetails: jest.fn((id) =>
+    Promise.resolve({
+      imdbID: id,
+      Genre: 'Drama',
+      imdbRating: '9.3',
+    })
+  ),
+}));
+
+describe('MovieList Component', () => {
+  let store;
+
+  beforeEach(() => {
+    store = mockStore({
+      movies: { query: 'action', page: 1 },
+    });
+  });
+
+  it('renders the loading spinner while fetching data', async () => {
+    render(
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <MovieList />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </Provider>
+    );
+
+    expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText(/Loading.../i)).not.toBeInTheDocument());
+  });
+
+  it('renders movies after fetching data', async () => {
+    render(
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <MovieList />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/The Shawshank Redemption/i)).toBeInTheDocument();
+      expect(screen.getByText(/The Godfather/i)).toBeInTheDocument();
+    });
+
+    const movieImages = screen.getAllByRole('img');
+    expect(movieImages).toHaveLength(mockMovies.Search.length);
+  });
+
+  it('renders "No Movies Found" message when no data is available', async () => {
+    jest.spyOn(require('./MovieApi'), 'fetchMovies').mockResolvedValueOnce({ Search: [], totalResults: 0 });
+
+    render(
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <MovieList />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/NO MOVIES FOUND./i)).toBeInTheDocument();
+    });
+  });
+
+  it('updates search query when the search bar is used', async () => {
+    render(
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <MovieList />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </Provider>
+    );
+
+    const searchInput = screen.getByPlaceholderText(/Search movies/i);
+    fireEvent.change(searchInput, { target: { value: 'war' } });
+    expect(searchInput.value).toBe('war');
+
+    const searchButton = screen.getByText(/Search/i);
+    fireEvent.click(searchButton);
+
+    await waitFor(() => {
+      expect(store.getActions()).toContainEqual({ type: 'movies/setQuery', payload: 'war' });
+    });
+  });
+
+  it('filters and sorts movies based on user selection', async () => {
+    render(
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <MovieList />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/The Shawshank Redemption/i)).toBeInTheDocument();
+      expect(screen.getByText(/The Godfather/i)).toBeInTheDocument();
+    });
+
+    const sortDropdown = screen.getByText(/Sort by:/i);
+    fireEvent.click(sortDropdown);
+
+    const sortOption = screen.getByText(/Year/i);
+    fireEvent.click(sortOption);
+
+    // Verify if the movies are sorted
+    const sortedMovies = screen.getAllByText(/Year:/i);
+    expect(sortedMovies[0]).toHaveTextContent('1972');
+    expect(sortedMovies[1]).toHaveTextContent('1994');
+  });
+});
