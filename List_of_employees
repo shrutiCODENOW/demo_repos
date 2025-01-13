@@ -1,0 +1,19 @@
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import Employee
+from .serializers import EmployeeSerializer
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # Only authenticated users
+def list_employees(request):
+    # Check if the user is an admin
+    if not request.user.is_staff:
+        return Response({"detail": "Permission Denied. Only admins can view the employee list."}, status=403)
+
+    # Fetch all employees
+    employees = Employee.objects.all()
+    
+    # Serialize the employee data
+    serializer = EmployeeSerializer(employees, many=True)
+    return Response({"employees": serializer.data}, status=200)
