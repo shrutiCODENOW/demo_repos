@@ -1,0 +1,30 @@
+from django.contrib.auth import authenticate, login
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import User
+from .serializers import UserSerializer
+
+
+@api_view(["POST"])
+def login_view(request):
+    """
+    Handle login for both employees and admins.
+    """
+    username = request.data.get("username")
+    password = request.data.get("password")
+
+    # Authenticate user
+    user = authenticate(request, username=username, password=password)
+
+    if user is not None:
+        login(request, user)
+
+        # Return user details
+        user_data = UserSerializer(user).data
+
+        # Determine user role
+        user_data["role"] = "Admin" if user.is_admin else "Employee"
+        return Response({"message": "Login successful", "user": user_data}, status=status.HTTP_200_OK)
+    else:
+        return Response({"error": "Invalid username or password"}, status=status.HTTP_401_UNAUTHORIZED)
