@@ -1,0 +1,81 @@
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Admin, Employee
+
+
+@api_view(["GET", "POST"])
+def login_view(request):
+    """
+    Handle login for Admin and Employee using POST.
+    Handle GET request to check the currently authenticated user details.
+    """
+    if request.method == "POST":
+        username = request.data.get("username")
+        password = request.data.get("password")
+        user_type = request.data.get("user_type")  # 'admin' or 'employee'
+
+        if user_type == "admin":
+            try:
+                user = Admin.objects.get(username=username)
+                if user.check_password(password):
+                    return Response(
+                        {"message": "Login successful", "user_type": "Admin", "username": user.username},
+                        status=status.HTTP_200_OK,
+                    )
+                else:
+                    return Response({"error": "Invalid password"}, status=status.HTTP_401_UNAUTHORIZED)
+            except Admin.DoesNotExist:
+                return Response({"error": "Admin not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        elif user_type == "employee":
+            try:
+                user = Employee.objects.get(username=username)
+                if user.check_password(password):
+                    return Response(
+                        {"message": "Login successful", "user_type": "Employee", "username": user.username},
+                        status=status.HTTP_200_OK,
+                    )
+                else:
+                    return Response({"error": "Invalid password"}, status=status.HTTP_401_UNAUTHORIZED)
+            except Employee.DoesNotExist:
+                return Response({"error": "Employee not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        else:
+            return Response({"error": "Invalid user type"}, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == "GET":
+        username = request.query_params.get("username")
+        user_type = request.query_params.get("user_type")  # 'admin' or 'employee'
+
+        if user_type == "admin":
+            try:
+                user = Admin.objects.get(username=username)
+                return Response(
+                    {
+                        "username": user.username,
+                        "email": user.email,
+                        "user_type": "Admin",
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            except Admin.DoesNotExist:
+                return Response({"error": "Admin not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        elif user_type == "employee":
+            try:
+                user = Employee.objects.get(username=username)
+                return Response(
+                    {
+                        "username": user.username,
+                        "email": user.email,
+                        "department": user.department,
+                        "user_type": "Employee",
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            except Employee.DoesNotExist:
+                return Response({"error": "Employee not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        else:
+            return Response({"error": "Invalid user type"}, status=status.HTTP_400_BAD_REQUEST)
