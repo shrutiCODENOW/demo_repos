@@ -1,0 +1,32 @@
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])  # Only authenticated users
+def update_employee(request, employee_id):
+    # Check if the user is an admin
+    if not request.user.is_staff:
+        return Response({"detail": "Permission Denied. Only admins can update employees."}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        # Fetch the employee instance
+        employee = Employee.objects.get(id=employee_id)
+    except Employee.DoesNotExist:
+        return Response({"detail": "Employee not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    # Update employee fields
+    department_name = request.data.get('department')
+    if department_name:
+        try:
+            department = Department.objects.get(name=department_name)
+            employee.department = department
+        except Department.DoesNotExist:
+            return Response({"detail": f"Department '{department_name}' not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    employee.first_name = request.data.get('first_name', employee.first_name)
+    employee.last_name = request.data.get('last_name', employee.last_name)
+    employee.email = request.data.get('email', employee.email)
+    employee.phone = request.data.get('phone', employee.phone)
+    employee.hire_date = request.data.get('hire_date', employee.hire_date)
+    employee.save()
+
+    # Serialize and return the updated employee
+    serializer = EmployeeSerializer(employee)
+    return Response({"detail": "Employee updated successfully.", "employee": serializer.data}, status=status.HTTP_200_OK)
