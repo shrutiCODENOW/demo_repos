@@ -1,0 +1,55 @@
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User
+from .models import Employee, Department
+from .serializers import EmployeeSerializer
+from rest_framework import status
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])  # Only authenticated users
+def add_employee(request):
+    # Check if the user is an admin
+    if not request.user.is_staff:
+        return Response({"detail": "Permission Denied. Only admins can add employees."}, status=status.HTTP_403_FORBIDDEN)
+
+    # Get data from the request
+    username = request.data.get('username')
+    password = request.data.get('password')
+    first_name = request.data.get('first_name')
+    last_name = request.data.get('last_name')
+    email = request.data.get('email')
+    phone = request.data.get('phone')
+    department_name = request.data.get('department')  # Department name as a string
+    hire_date = request.data.get('hire_date')
+
+    # Check if all required fields are provided
+    missing_fields = [field for field in ['username', 'password', 'first_name', 'last_name', 'email', 'phone', 'department', 'hire_date']
+                      if not request.data.get(field)]
+    if missing_fields:
+        return Response({"detail": f"Missing fields: {', '.join(missing_fields)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # Fetch or create the Department instance
+        department, created = Department.objects.get_or_create(name=department_name)
+
+        # Create the User instance
+        user = User.objects.create_user(username=username, password=password)
+
+        # Create the Employee instance
+        employee = Employee.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=phone,
+            department=department,  # Link the Department instance
+            hire_date=hire_date
+        )
+
+        # Serialize the Employee object and return the response
+        serializer = EmployeeSerializer(employee)
+        return Response({"detail": "Employee created successfully.", "employee": serializer.data}, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        # Handle errors during the creation process
+        return Response({"detail": f"Error creating employee: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
