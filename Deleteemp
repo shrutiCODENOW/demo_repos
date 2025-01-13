@@ -1,0 +1,14 @@
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])  # Only authenticated users
+def delete_employee(request, employee_id):
+    # Check if the user is an admin
+    if not request.user.is_staff:
+        return Response({"detail": "Permission Denied. Only admins can delete employees."}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        # Fetch the employee instance
+        employee = Employee.objects.get(id=employee_id)
+        employee.delete()
+        return Response({"detail": "Employee deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+    except Employee.DoesNotExist:
+        return Response({"detail": "Employee not found."}, status=status.HTTP_404_NOT_FOUND)
