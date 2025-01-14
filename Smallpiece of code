@@ -1,0 +1,3 @@
+for leave_request in leave_requests:
+            # Calculate the difference between start_date and end_date (inclusive)
+            leave_days += (min(leave_request.end_date, today) - max(leave_request.start_date, hire_date)).days + 1
