@@ -1,0 +1,15 @@
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import Attendance
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def delete_all_attendance(request):
+    if not request.user.is_staff:
+        return Response({"detail": "Permission Denied. Admins only."}, status=403)
+
+    # Delete all attendance records
+    Attendance.objects.all().delete()
+
+    return Response({"detail": "All attendance records have been deleted."}, status=200)
