@@ -1,0 +1,21 @@
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # Only authenticated users
+def view_leave_requests(request):
+    if not request.user.is_staff:
+        return Response({"detail": "Permission Denied. Only admins can view leave requests."}, status=403)
+
+    # Fetch all leave requests
+    leave_requests = LeaveRequest.objects.all()
+    leave_data = [
+        {
+            "id": leave.id,
+            "employee": f"{leave.employee.first_name} {leave.employee.last_name}",
+            "start_date": leave.start_date,
+            "end_date": leave.end_date,
+            "reason": leave.reason,
+            "status": leave.get_status_display(),
+        }
+        for leave in leave_requests
+    ]
+
+    return Response({"leave_requests": leave_data}, status=200)
