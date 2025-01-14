@@ -1,0 +1,49 @@
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from datetime import datetime, timedelta
+from .models import Employee, Attendance, LeaveRequest
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_all_as_present_or_leave(request):
+    if not request.user.is_staff:
+        return Response({"detail": "Permission Denied. Admins only."}, status=403)
+
+    # Get today's date
+    today = datetime.today().date()
+
+    # Iterate over all employees
+    employees = Employee.objects.all()
+    for employee in employees:
+        hire_date = employee.hire_date
+
+        # If the employee's hire date is before or equal to today
+        if hire_date <= today:
+            # Create attendance record for each day from hire_date to today
+            current_date = hire_date
+            while current_date <= today:
+                # Check if the employee has an approved leave request for that day
+                leave_request = LeaveRequest.objects.filter(
+                    employee=employee, 
+                    start_date__lte=current_date, 
+                    end_date__gte=current_date,
+                    status='A'  # Approved leave
+                )
+
+                if leave_request.exists():
+                    # Mark the attendance as "Leave" if the employee is on approved leave
+                    attendance_status = 'L'
+                else:
+                    # Mark as "Present" if not on leave
+                    attendance_status = 'P'
+
+                # Check if attendance already exists for the current day
+                if not Attendance.objects.filter(employee=employee, date=current_date).exists():
+                    # Create new attendance record
+                    Attendance.objects.create(employee=employee, date=current_date, status=attendance_status)
+
+                # Move to the next day
+                current_date += timedelta(days=1)
+
+    return Response({"detail": "All employees marked as present or leave from their date of joining, based on approved leave."}, status=200)
