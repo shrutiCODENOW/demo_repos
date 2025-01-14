@@ -125,3 +125,66 @@ def admin_dashboard(request):
     }
 
     return Response(dashboard_data, status=200)
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import Employee, Department, Attendance
+from django.db.models import Count, F
+from datetime import date
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # Only authenticated users
+def admin_dashboard(request):
+    # Check if the user is an Admin
+    if not request.user.is_staff:
+        return Response({"detail": "Permission Denied. Admins only."}, status=403)
+
+    # Get the total number of employees
+    total_employees = Employee.objects.count()
+
+    # Get the total number of departments
+    total_departments = Department.objects.count()
+
+    # Get today's date for calculation purposes
+    today = date.today()
+
+    # Get the list of employees with their hire date and attendance
+    employees = Employee.objects.all()
+
+    dashboard_data = []
+    
+    for employee in employees:
+        # Calculate total working days based on hire date
+        total_working_days = (today - employee.hire_date).days
+
+        # Get the number of leave days for this employee
+        leave_days = Attendance.objects.filter(employee=employee, status='L').count()
+
+        # Calculate present days
+        present_days = total_working_days - leave_days
+
+        # Get the longest present employee
+        dashboard_data.append({
+            'employee_name': f"{employee.first_name} {employee.last_name}",
+            'total_working_days': total_working_days,
+            'leave_days': leave_days,
+            'present_days': present_days
+        })
+
+    # Find the employee with the longest present days
+    longest_present_employee = max(dashboard_data, key=lambda x: x['present_days'], default=None)
+
+    # Find the employee with the least present days
+    least_present_employee = min(dashboard_data, key=lambda x: x['present_days'], default=None)
+
+    # Prepare the dashboard summary
+    dashboard_summary = {
+        'total_employees': total_employees,
+        'total_departments': total_departments,
+        'longest_present_employee': longest_present_employee['employee_name'] if longest_present_employee else "N/A",
+        'least_present_employee': least_present_employee['employee_name'] if least_present_employee else "N/A",
+    }
+
+    return Response(dashboard_summary, status=200)
