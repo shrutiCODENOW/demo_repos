@@ -1,0 +1,24 @@
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])  # Only authenticated users
+def update_leave_status(request, leave_id):
+    if not request.user.is_staff:
+        return Response({"detail": "Permission Denied. Only admins can update leave status."}, status=403)
+
+    try:
+        # Fetch the leave request by ID
+        leave_request = LeaveRequest.objects.get(id=leave_id)
+
+        # Extract new status from the request body
+        new_status = request.data.get('status')
+
+        if not new_status or new_status not in dict(LeaveRequest.status_choices):
+            return Response({"detail": "Invalid status. Valid choices are 'P', 'A', or 'R'."}, status=400)
+
+        # Update the status
+        leave_request.status = new_status
+        leave_request.save()
+
+        return Response({"detail": f"Leave request status updated to {leave_request.get_status_display()}."}, status=200)
+
+    except LeaveRequest.DoesNotExist:
+        return Response({"detail": "Leave request not found."}, status=404)
