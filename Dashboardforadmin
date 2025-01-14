@@ -1,0 +1,44 @@
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import Employee, Department, Attendance
+from django.db.models import Sum
+from datetime import datetime
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # Only authenticated users
+def admin_dashboard(request):
+    # Check if the user is an Admin
+    if not request.user.is_staff:
+        return Response({"detail": "Permission Denied. Admins only."}, status=403)
+
+    # Get the total number of employees
+    total_employees = Employee.objects.count()
+
+    # Get the total number of departments
+    total_departments = Department.objects.count()
+
+    # Get the employee with the longest attendance
+    # We calculate total present days by subtracting leave days from the total working days.
+    longest_present_employee = Employee.objects.annotate(
+        present_days=Sum('attendance__status', filter=Attendance.objects.filter(status='P'))
+    ).order_by('-present_days').first()
+
+    # Get the employee with the least attendance
+    least_present_employee = Employee.objects.annotate(
+        present_days=Sum('attendance__status', filter=Attendance.objects.filter(status='P'))
+    ).order_by('present_days').first()
+
+    # If no attendance is found for some employees, present_days will be None
+    longest_present_employee_name = longest_present_employee.first_name + " " + longest_present_employee.last_name if longest_present_employee else "N/A"
+    least_present_employee_name = least_present_employee.first_name + " " + least_present_employee.last_name if least_present_employee else "N/A"
+
+    # Calculate the data for the dashboard
+    dashboard_data = {
+        'total_employees': total_employees,
+        'total_departments': total_departments,
+        'longest_present_employee': longest_present_employee_name,
+        'least_present_employee': least_present_employee_name,
+    }
+
+    return Response(dashboard_data, status=200)
