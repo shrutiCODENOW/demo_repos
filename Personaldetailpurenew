@@ -1,0 +1,20 @@
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # Only authenticated users
+def personal_detail(request):
+    if request.user.is_staff:
+        return Response({"detail": "Permission Denied. Admins cannot access employee details."}, status=403)
+
+    try:
+        username = request.user.username
+
+        # Search for the employee where the username matches the concatenation of first_name and last_name
+        employee = Employee.objects.get(
+            first_name__iexact=username[:len(request.user.first_name)],
+            last_name__iexact=username[len(request.user.first_name):]
+        )
+        serializer = EmployeeSerializer(employee)
+        return Response({"employee": serializer.data}, status=200)
+    except Employee.DoesNotExist:
+        return Response({"detail": "Employee record not found."}, status=404)
+    except Exception as e:
+        return Response({"detail": f"An error occurred: {str(e)}"}, status=400)
