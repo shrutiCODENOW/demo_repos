@@ -1,0 +1,14 @@
+if new_status == 'A':
+            start_date = leave_request.start_date
+            end_date = leave_request.end_date
+            employee = leave_request.employee
+
+            current_date = start_date
+            while current_date <= end_date:
+                # Create attendance entry for each day in the leave period
+                Attendance.objects.update_or_create(
+                    employee=employee,
+                    date=current_date,
+                    defaults={'status': 'L'}  # Mark as Leave
+                )
+                current_date += timedelta(days=1)
