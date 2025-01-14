@@ -1,0 +1,50 @@
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import Employee, Department, Attendance, LeaveRequest
+from django.db.models import Count, F, ExpressionWrapper, fields
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # Only authenticated users
+def admin_dashboard(request):
+    # Check if the user is an Admin
+    if not request.user.is_staff:
+        return Response({"detail": "Permission Denied. Admins only."}, status=403)
+
+    # Get the total number of employees
+    total_employees = Employee.objects.count()
+
+    # Get the total number of departments
+    total_departments = Department.objects.count()
+
+    # Calculate total working days and leave days based on attendance model
+    employees = Employee.objects.annotate(
+        total_working_days=Count('attendance', filter=~Attendance.objects.filter(status='L')),  # Exclude Leave days
+        leave_days=Count('attendance', filter=Attendance.objects.filter(status='L')),  # Only Leave days
+    ).annotate(
+        present_days=ExpressionWrapper(
+            F('total_working_days') - F('leave_days'), output_field=fields.IntegerField())
+    )
+
+    # Get the employee with the longest attendance
+    longest_present_employee = employees.order_by('-present_days').first()
+
+    # Get the employee with the least attendance
+    least_present_employee = employees.order_by('present_days').first()
+
+    # If no attendance or leave requests are found for some employees, the present_days could be None
+    longest_present_employee_name = (
+        longest_present_employee.first_name + " " + longest_present_employee.last_name if longest_present_employee else "N/A")
+    least_present_employee_name = (
+        least_present_employee.first_name + " " + least_present_employee.last_name if least_present_employee else "N/A")
+
+    # Calculate the data for the dashboard
+    dashboard_data = {
+        'total_employees': total_employees,
+        'total_departments': total_departments,
+        'longest_present_employee': longest_present_employee_name,
+        'least_present_employee': least_present_employee_name,
+    }
+
+    return Response(dashboard_data, status=200)
