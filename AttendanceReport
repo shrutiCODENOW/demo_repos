@@ -1,0 +1,106 @@
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from datetime import datetime
+from .models import Employee, Attendance, LeaveRequest
+from django.db.models import Count, Q
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def attendance_report(request):
+    if not request.user.is_staff:
+        return Response({"detail": "Permission Denied. Admins only."}, status=403)
+
+    # Get today's date
+    today = datetime.today().date()
+
+    # Get all employees
+    employees = Employee.objects.all()
+
+    report = []
+
+    for employee in employees:
+        hire_date = employee.hire_date
+
+        # Calculate total working days (from hire date to today)
+        total_working_days = (today - hire_date).days + 1  # Including the hire date
+
+        # Get the number of approved leave days for the employee
+        approved_leave_days = LeaveRequest.objects.filter(
+            employee=employee, 
+            status='A', 
+            start_date__lte=today, 
+            end_date__gte=hire_date
+        ).aggregate(leave_days=Count('id'))['leave_days']
+
+        # Calculate the number of present days (total days - leave days)
+        present_days = total_working_days - approved_leave_days
+
+        report.append({
+            'employee': f"{employee.first_name} {employee.last_name}",
+            'total_working_days': total_working_days,
+            'leave_days': approved_leave_days,
+            'present_days': present_days,
+        })
+
+    return Response({"attendance_report": report}, status=200)
+
+
+
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from datetime import datetime
+from .models import Employee, Attendance, LeaveRequest
+from django.db.models import Count
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def attendance_report(request, id=None):
+    if not request.user.is_staff:
+        return Response({"detail": "Permission Denied. Admins only."}, status=403)
+
+    # Get today's date
+    today = datetime.today().date()
+
+    # If employee_id is provided, fetch that employee
+    if id:
+        try:
+            employee = Employee.objects.get(id=id)
+            employees = [employee]  # Only the specific employee
+        except Employee.DoesNotExist:
+            return Response({"detail": "Employee not found."}, status=404)
+    else:
+        # If no employee_id is provided, fetch all employees
+        employees = Employee.objects.all()
+
+    report = []
+
+    for employee in employees:
+        hire_date = employee.hire_date
+
+        # Calculate total working days (from hire date to today)
+        total_working_days = (today - hire_date).days + 1  # Including the hire date
+
+        # Get the number of approved leave days for the employee
+        approved_leave_days = LeaveRequest.objects.filter(
+            employee=employee, 
+            status='A', 
+            start_date__lte=today, 
+            end_date__gte=hire_date
+        ).aggregate(leave_days=Count('id'))['leave_days']
+
+        # Calculate the number of present days (total days - leave days)
+        present_days = total_working_days - approved_leave_days
+
+        report.append({
+            'employee_id': employee.id,
+            'employee': f"{employee.first_name} {employee.last_name}",
+            'total_working_days': total_working_days,
+            'leave_days': approved_leave_days,
+            'present_days': present_days,
+        })
+
+    return Response({"attendance_report": report}, status=200)
