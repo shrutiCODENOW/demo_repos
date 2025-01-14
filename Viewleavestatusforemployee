@@ -1,0 +1,22 @@
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # Only authenticated users
+def view_leave_status(request, leave_id):
+    try:
+        # Fetch the leave request by ID
+        leave_request = LeaveRequest.objects.get(id=leave_id)
+
+        # Check if the logged-in user is the one who made the leave request
+        if leave_request.employee.user != request.user:
+            return Response({"detail": "You are not authorized to view this leave request."}, status=403)
+
+        # Return the leave request status
+        return Response({
+            "leave_id": leave_request.id,
+            "start_date": leave_request.start_date,
+            "end_date": leave_request.end_date,
+            "reason": leave_request.reason,
+            "status": leave_request.get_status_display()  # Display the human-readable status
+        }, status=200)
+
+    except LeaveRequest.DoesNotExist:
+        return Response({"detail": "Leave request not found."}, status=404)
