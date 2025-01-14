@@ -1,0 +1,33 @@
+from .models import LeaveRequest
+from rest_framework import status
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])  # Only authenticated users
+def request_leave(request):
+    if request.user.is_staff:
+        return Response({"detail": "Permission Denied. Admins cannot request leave."}, status=403)
+
+    try:
+        # Fetch the employee record
+        employee = Employee.objects.get(user=request.user)
+
+        # Extract leave details from the request body
+        start_date = request.data.get('start_date')
+        end_date = request.data.get('end_date')
+        reason = request.data.get('reason')
+
+        if not start_date or not end_date or not reason:
+            return Response({"detail": "All fields are required (start_date, end_date, reason)."}, status=400)
+
+        # Create a leave request
+        leave_request = LeaveRequest.objects.create(
+            employee=employee,
+            start_date=start_date,
+            end_date=end_date,
+            reason=reason
+        )
+
+        return Response({"detail": "Leave request submitted successfully.", "leave_id": leave_request.id}, status=201)
+
+    except Employee.DoesNotExist:
+        return Response({"detail": "Employee record not found."}, status=404)
