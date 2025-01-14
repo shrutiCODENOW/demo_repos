@@ -1,0 +1,21 @@
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # Only authenticated users
+def personal_detail(request):
+    if request.user.is_staff:
+        return Response({"detail": "Permission Denied. Admins cannot access employee details."}, status=403)
+
+    try:
+        # Extract first_name and last_name from username
+        # Example assumes `username` is "JohnDoe" where "John" is first_name and "Doe" is last_name
+        username = request.user.username
+        first_name = username[:len(username)//2]  # First half of the username
+        last_name = username[len(username)//2:]  # Second half of the username
+
+        # Find the corresponding employee
+        employee = Employee.objects.get(first_name=first_name, last_name=last_name)
+        serializer = EmployeeSerializer(employee)
+        return Response({"employee": serializer.data}, status=200)
+    except Employee.DoesNotExist:
+        return Response({"detail": "Employee record not found."}, status=404)
+    except Exception as e:
+        return Response({"detail": f"An error occurred: {str(e)}"}, status=400)
