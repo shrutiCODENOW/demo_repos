@@ -53,3 +53,18 @@ def add_employee(request):
     except Exception as e:
         # Handle errors during the creation process
         return Response({"detail": f"Error creating employee: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # Only authenticated users
+def personal_detail(request):
+    if request.user.is_staff:
+        return Response({"detail": "Permission Denied. Admins cannot access employee details."}, status=403)
+
+    try:
+        # Fetch the employee details based on the logged-in user
+        employee = Employee.objects.get(first_name=request.user.username)
+        # employee = Employee.objects.get(id=request.user.id)
+        serializer = EmployeeSerializer(employee)
+        return Response({"employee": serializer.data}, status=200)
+    except Employee.DoesNotExist:
+        return Response({"detail": "Employee record not found."}, status=404)
