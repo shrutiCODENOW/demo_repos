@@ -58,3 +58,80 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import {Table, TableContainer, TableCell, TableHead, TableBody, TableRow} from "@mui/material"
+
+const TotalTask = () => {
+  const [dashboardData, setDashboardData] = useState({
+    total_tasks: 0,
+    open_tasks: 0,
+    closed_tasks: 0,
+    tasks_per_user: {},
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    // Fetch dashboard data from Django API
+    const fetchDashboardData = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8093/dashboard/', {
+          auth: {
+            username: localStorage.getItem('username'),
+            password: localStorage.getItem('password'),  // Basic Authentication
+          }
+        });
+        setDashboardData(response.data);
+      } catch (err) {
+        setError('Failed to fetch dashboard data.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+
+  return (
+    <div>
+      <h1 style={{textAlign:"center",color:"blueviolet"}}>Dash<span style={{color:"black"}}>board</span></h1>
+      <div
+       style={{
+        padding:'20px',
+        width:'70%',
+        margin:'20px auto',
+        border:'1px solid #ddd',
+        borderRadius:'8px',
+        boxShadow:'0 4px 6px rgba(0,0,0,0.1)',
+        backgroundColor:'#f9f9f9',
+       }}
+      >
+        <h3 style={{color:"blueviolet"}}>Total Tasks:<span style={{color:"black"}}> {dashboardData.total_tasks}</span></h3>
+        <h3 style={{color:"blueviolet"}}>Open Tasks: <span style={{color:"black"}}>{dashboardData.open_tasks}</span></h3>
+        <h3 style={{color:"blueviolet"}}>Closed Tasks: <span style={{color:"black"}}>{dashboardData.closed_tasks}</span></h3>
+        <h3 style={{color:"blueviolet"}}>Tasks <span style={{color:"black"}}>Per</span> User:</h3>
+        <ul style={{listStyleType:'none', paddingLeft:'20px'}}>
+          {Object.entries(dashboardData.tasks_per_user).map(([user, taskCount]) => (
+            <li key={user}
+                style={{
+                    marginBottom:"10px",
+                    fontSize:'16px',
+                    color:'#555',
+                    borderBottom:'5px solid #ddd',
+                    paddingBottom:'5px'
+                }}
+            ><strong>{user}:</strong> {taskCount} tasks</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+export default TotalTask;
