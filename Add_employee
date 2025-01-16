@@ -274,3 +274,129 @@ const Login = () => {
 
 export default Login;
 
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router";
+import axios from "axios";
+import { Box, TextField, Button, Typography, Paper, InputAdornment } from "@mui/material";
+import { FaUser, FaLock } from "react-icons/fa"; // Import icons
+import { loginSuccess } from "../Redux/authSlice";
+
+const Login = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/token/", {
+        username,
+        password,
+      });
+      const { access, refresh, user_id, is_staff } = response.data;
+      dispatch(
+        loginSuccess({
+          user: { id: user_id, username },
+          accessToken: access,
+          refreshToken: refresh,
+          is_staff: is_staff,
+        })
+      );
+      setError("");
+      if (is_staff) {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("Invalid credentials");
+    }
+  };
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        backgroundColor: "#f5f5f5",
+      }}
+    >
+      <Paper
+        elevation={10}
+        sx={{
+          padding: 4,
+          width: 400,
+          textAlign: "center",
+          borderRadius: 3,
+          boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.2)",
+        }}
+      >
+        <Typography variant="h4" component="h1" gutterBottom color="primary">
+          Login
+        </Typography>
+        <Box component="form" onSubmit={handleLogin}>
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="username"
+            label="Username"
+            name="username"
+            autoComplete="username"
+            autoFocus
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <FaUser style={{ color: "gray" }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            name="password"
+            label="Password"
+            type="password"
+            id="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <FaLock style={{ color: "gray" }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+          {error && (
+            <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+              {error}
+            </Typography>
+          )}
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            color="primary"
+            sx={{ mt: 3, mb: 2 }}
+          >
+            Login
+          </Button>
+        </Box>
+      </Paper>
+    </Box>
+  );
+};
+
+export default Login;
