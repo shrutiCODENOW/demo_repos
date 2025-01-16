@@ -433,3 +433,44 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+
+-Add new employee with details
+
+9 -Add department
+
+10 View the list of all employees
+
+11 -Update Employee details
+
+12 -Delete Employee records
+
+13 -Responsive Design
+
+14 Authentication for secure access of Employee and Manager
+
+15 Employee can request for leave
+
+16 -Managercan review and approve leaves
+
+17
+
+Employee has option to view their details
+
+18 Charts to Analyze attendance records
+
+19
+
+20 asTech Stack
+
+21
+
+22 **Frontend**: React.js, Haterial-UI
+
+23 **Backend**: Django REST FRAMEWORK (DRF)
+
+24
+
+25
+
+**Other Tools**: Redux for state management, Axios for API calls
