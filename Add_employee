@@ -400,3 +400,36 @@ const Login = () => {
 };
 
 export default Login;
+
+
+import React from "react";
+import { useDispatch } from "react-redux";
+import { logout } from "../../Redux/authSlice";
+import { Button } from "@mui/material";
+import { useNavigate } from "react-router";
+import { useTheme, lightTheme, darkTheme } from "../../contexts/Theme";
+const Navbar = () => {
+  const { theme, toggleTheme } = useTheme();
+  const currentTheme = theme === "light" ? lightTheme : darkTheme;
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
+
+  return (
+    <nav>
+      <Button onClick={handleLogout} variant="contained" color="secondary">
+        Logout
+      </Button>
+      <Button onClick={toggleTheme} variant="contained" color="secondary">
+        Switch to {theme === "light" ? "Dark" : "Light"} Theme
+      </Button>
+    </nav>
+  );
+};
+
+export default Navbar;
