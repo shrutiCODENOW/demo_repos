@@ -68,3 +68,95 @@ def personal_detail(request):
         return Response({"employee": serializer.data}, status=200)
     except Employee.DoesNotExist:
         return Response({"detail": "Employee record not found."}, status=404)
+
+
+
+
+
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router";
+import axios from "axios";
+import { Box, TextField, Button, Typography } from '@mui/material';
+import { loginSuccess } from "../Redux/authSlice";
+
+const Login = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/token/", {
+        username,
+        password,
+      });
+      const { access, refresh, user_id, is_staff } = response.data;
+      dispatch(
+        loginSuccess({
+          user: { id: user_id, username },
+          accessToken: access,
+          refreshToken: refresh,
+          is_staff: is_staff,
+        })
+        );
+      console.log('Token set');
+      if (is_staff) {
+        navigate("/admin");
+        console.log('Admin');
+      }
+
+      setError("");
+      navigate("/");
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("Invalid credentials");
+    }
+  };
+
+  return (
+    <Box component="form" onSubmit={handleLogin} sx={{ mt: 2 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Login
+      </Typography>
+      <TextField
+        margin="normal"
+        required
+        fullWidth
+        id="username"
+        label="Username"
+        name="username"
+        autoComplete="username"
+        autoFocus
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
+      <TextField
+        margin="normal"
+        required
+        fullWidth
+        name="password"
+        label="Password"
+        type="password"
+        id="password"
+        autoComplete="current-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      {error && (
+        <Typography color="error" variant="body2">
+          {error}
+        </Typography>
+      )}
+      <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+        Login
+      </Button>
+    </Box>
+  );
+};
+
+export default Login;
+
