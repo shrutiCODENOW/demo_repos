@@ -1,0 +1,28 @@
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import Product, Category
+from .serializers import ProductSerializer, CategorySerializer
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_user_products(request):
+    """
+    Get a list of all products created by the authenticated user.
+    """
+    user = request.user
+    products = Product.objects.filter(category__products__user=user).distinct()
+    serializer = ProductSerializer(products, many=True)
+    return Response(serializer.data, status=200)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_user_categories(request):
+    """
+    Get a list of all categories with products created by the authenticated user.
+    """
+    user = request.user
+    categories = Category.objects.filter(products__user=user).distinct()
+    serializer = CategorySerializer(categories, many=True)
+    return Response(serializer.data, status=200)
