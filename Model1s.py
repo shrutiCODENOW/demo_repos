@@ -116,6 +116,78 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.id} by {self.user.username}"
+
+from rest_framework import serializers
+from django.contrib.auth.models import User
+from .models import Category, Product, InventoryLog, Order
+
+# User Serializer
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'is_staff']
+
+# Category Serializer
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name']
+
+# Product Serializer
+class ProductSerializer(serializers.ModelSerializer):
+    category_name = serializers.ReadOnlyField(source='category.name')
+
+    class Meta:
+        model = Product
+        fields = [
+            'id',
+            'name',
+            'category',
+            'category_name',
+            'description',
+            'price',
+            'stock_quantity',
+            'created_at',
+            'updated_at'
+        ]
+
+# Inventory Log Serializer
+class InventoryLogSerializer(serializers.ModelSerializer):
+    product_name = serializers.ReadOnlyField(source='product.name')
+    user_username = serializers.ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = InventoryLog
+        fields = [
+            'id',
+            'product',
+            'product_name',
+            'user',
+            'user_username',
+            'quantity',
+            'action',
+            'created_at'
+        ]
+
+# Order Serializer
+class OrderSerializer(serializers.ModelSerializer):
+    product_name = serializers.ReadOnlyField(source='product.name')
+    user_username = serializers.ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = Order
+        fields = [
+            'id',
+            'product',
+            'product_name',
+            'user',
+            'user_username',
+            'quantity',
+            'total_price',
+            'created_at',
+            'updated_at'
+        ]
+        
   
 
   
